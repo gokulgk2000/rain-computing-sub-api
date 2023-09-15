@@ -1,7 +1,7 @@
 const config = {
     MONGO_URL:
     // "mongodb://localhost:27017/HsuanyehRain",
-    "mongodb://hsuanyeh:UjSdRwy1tL5lc7uOzNgLenMh466OjqWLbzZOKYs1Ak1UMlnSG9hpkmb4cKVtMmGyLXUKpQOoXdvGACDbft7kYA==@hsuanyeh.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@hsuanyeh@",
+    "mongodb://rc-sub-cosmodb:xe0LHri9s9zKzPvBJMwPkzdqS8nxb2TN2bxfLElLbyJ6ZawnVELB4RnKmKP9pVpntWDQsdfXJIJOACDb56botw==@rc-sub-cosmodb.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@rc-sub-cosmodb@",
     
     //   JWT_SECRET: "dev",
     PORT: 5000,
