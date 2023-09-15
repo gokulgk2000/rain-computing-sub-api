@@ -1,7 +1,8 @@
 const config = {
     MONGO_URL:
-    "mongodb://localhost:27017/HsuanyehRain",
-    // "mongodb://raincomputingcosmosdb:tBYDpH68hIKiWL1dd72FlUV7m8tn3rqy6OV0fVWDSuzvSJ8XtovbzRP6bG4xMPKIwfTCHHr2AIveACDbx3ff6w%3D%3D@raincomputingcosmosdb.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@raincomputingcosmosdb@",
+    // "mongodb://localhost:27017/HsuanyehRain",
+    "mongodb://hsuanyeh:UjSdRwy1tL5lc7uOzNgLenMh466OjqWLbzZOKYs1Ak1UMlnSG9hpkmb4cKVtMmGyLXUKpQOoXdvGACDbft7kYA==@hsuanyeh.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@hsuanyeh@",
+    
     //   JWT_SECRET: "dev",
     PORT: 5000,
     // MAIL_SERVICE: "gmail",
