@@ -18,45 +18,45 @@ const userSchema = mongoose.Schema({
     required: true,
   },
 
-//   verified: {
-//     type: Boolean,
-//     default: false,
-//     required: true,
-//   },
+  verified: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
 
-//   profilePic: {
-//     type: String,
-//   },
+  profilePic: {
+    type: String,
+  },
 
-//   isProfilePic: { type: Boolean, default: true },
+  isProfilePic: { type: Boolean, default: true },
 
-//   aflag: {
-//     type: Boolean,
-//   },
-//   date: {
-//     type: Date,
-//     default: Date.now(),
-//   },
-//    isNotifySound: {
-//     type: Boolean,
-//     default: false,
-//   },
-//    notificationSound: {
-//     type: String,
-//   },
-//   attorneyStatus: {
-//     type: String,
-//   },
-//   appointmentStatus: {
-//     type: String,
-//   },
-//   lastModified: {
-//     type: Date,
-//     default: Date.now(),
-//   },
-//   admin:{
-//     type: Boolean,
-//     default: false,
-//   }
+  aflag: {
+    type: Boolean,
+  },
+  date: {
+    type: Date,
+    default: Date.now(),
+  },
+   isNotifySound: {
+    type: Boolean,
+    default: false,
+  },
+   notificationSound: {
+    type: String,
+  },
+  attorneyStatus: {
+    type: String,
+  },
+  appointmentStatus: {
+    type: String,
+  },
+  lastModified: {
+    type: Date,
+    default: Date.now(),
+  },
+  admin:{
+    type: Boolean,
+    default: false,
+  }
 });
 module.exports = mongoose.model("UserModel", userSchema);
