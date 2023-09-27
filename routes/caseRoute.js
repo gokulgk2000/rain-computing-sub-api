@@ -16,5 +16,5 @@ router.post("/searchCasebySno", caseController.SEARCHCASEBYSNO);
 router.post("/createSubCase", caseController.CREATE_SUBCASE);
 router.post("/caseIdbySubCase", caseController.CASEIDBY_SUBCASES);
 router.post("/allSubCases", caseController. GET_ALL_SUBCASES);
-
+router.post("/getCasesByClientId", caseController.GETCASESBYCLIENTID);
 module.exports = router;

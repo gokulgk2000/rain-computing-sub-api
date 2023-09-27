@@ -15,6 +15,7 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 const config = require("./config");
 const UserModel = require("./models/userModel");
+const Client = require("./models/Client");
 const { sendMail } = require("./services/mail.services");
 const Message = require("./models/Message");
 
@@ -393,6 +394,7 @@ const create = async () => {
   app.get("/", (req, res) => res.send("Hello"));
 
   app.use("/api/user", require("./routes/userRoute"));
+  app.use("/api/client", require("./routes/clientRoute"));
   // app.use("/api/chat", require("./routes/privateChatRoute"));
   app.use("/api/pchat", require("./routes/chatRoute"));
   app.use("/api/attorney", require("./routes/attorneyRoute"));
