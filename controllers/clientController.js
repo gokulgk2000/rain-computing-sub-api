@@ -24,10 +24,8 @@ const CREATE = async (req, res) => {
             clientId: clientId,
             
         };
-console.log("kk client:",clientQuery)
 
         const createClient = await Client.create(clientQuery);
-
         if (createClient) {
             return res.json({
                 success: true,

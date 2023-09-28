@@ -46,7 +46,8 @@ const create = async () => {
   );
   app.use(cookieParser());
 
-  //DB connection
+  //DB connection8
+  mongoose.set("strictQuery", false);
   mongoose
     .connect(config.MONGO_URL, {
       useNewUrlParser: true,
