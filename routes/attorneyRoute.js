@@ -25,6 +25,7 @@ router.post("/register", async (req, res) => {
     } = req.body;
     //Finding user from DB collection using unique userID
     const user = await UserModel.findOne({ _id: userID, aflag: true });
+    console.log("user",user)
     //Executes is user found
     if (user) {
       //Creating query to registering user
