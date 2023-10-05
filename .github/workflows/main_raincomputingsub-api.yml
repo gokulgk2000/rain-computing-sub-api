@@ -74,7 +74,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'raincomputingsub-api'
+          app-name: 'raincomputing-sub-api'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A9259C884E2D42C28FBAFE5783E3E246 }}
           package: .
