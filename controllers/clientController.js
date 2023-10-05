@@ -7,12 +7,12 @@ const axios = require("axios");
 
 const CREATE = async (req, res) => {
   try {
-    const { clientName, clientId, email, address, userId } = req.body;
+    const { clientName, email, address, userId } = req.body;
 
-    const isClientId = await Client.findOne({ clientId });
+    const isEmail = await Client.findOne({ email });
 
-    if (isClientId) {
-      return res.json({ msg: "Client Id Already existing" });
+    if (isEmail) {
+      return res.json({ msg: "Email is Already existing" });
     }
 
     const clientQuery = {
@@ -20,7 +20,6 @@ const CREATE = async (req, res) => {
       clientName: clientName,
       email: email,
       address: address,
-      clientId: clientId,
     };
 
     const createClient = await Client.create(clientQuery);
@@ -39,7 +38,7 @@ const CREATE = async (req, res) => {
 const GETCLIENTSBYUSERID = async (req, res) => {
   try {
     const { userId } = req.body;
-    const clients = await Client.find({ userId });
+    const clients = await Client.find({ userId, aflag: true });
     if (clients?.length > 0) {
       return res.json({ success: true, clients: clients });
     } else return res.json({ msg: "No Clients Found" });
@@ -48,19 +47,94 @@ const GETCLIENTSBYUSERID = async (req, res) => {
   }
 };
 
-const DELETECLIENT = async (req, res) => {
+const UPDATE_CLIENT = async (req, res) => {
   try {
-    const { clientId, userId } = req.body;
-    const client = await Client.find({ clientId, userId });
-    if (client) {
-      return res.json({ success: true, client: client });
-    } else return res.json({ msg: "No Clients Found" });
+    const { id, clientName, email, address, userId, deleteIt } = req.body;
+
+    const updateQuery = {
+      clientName,
+      email,
+      address,
+      userId,
+      deleteIt,
+    };
+
+    if (deleteIt) {
+      const deletedClient = await Client.findByIdAndUpdate(id, {
+        aflag: false,
+      });
+
+      if (deletedClient) {
+        return res.json({
+          success: true,
+          deletedClient
+        });
+      }
+    } else {
+      const existingClient = await Client.findById(id);
+      if (!existingClient) {
+        return res.json({
+          success: false,
+          msg: "Client not found.",
+        });
+      }
+
+      if (clientName !== existingClient.clientName) {
+        // If clientName is updated, update the corresponding Case
+        const updatedClient = await Client.findByIdAndUpdate(id, updateQuery, {
+          new: true,
+        });
+
+        const updatedCase = await Case.findOneAndUpdate(
+          { clientName: existingClient.clientName },
+          { clientName: clientName },
+          { new: true }
+        ).populate([
+          {
+            path: "caseMembers.id",
+            select: "firstname lastname profilePic email",
+          },
+          { path: "caseMembers.addedBy", select: "firstname lastname" },
+        ]);
+
+        if (updatedClient && updatedCase) {
+          return res.json({
+            success: true,
+            updatedClient,
+            updatedCase,
+          });
+        } else {
+          return res.json({
+            success: false,
+            msg: "Client or Case update failed.",
+          });
+        }
+      } else {
+        // If clientName is not updated, only update the client
+        const updatedClient = await Client.findByIdAndUpdate(id, updateQuery, {
+          new: true,
+        });
+
+        if (updatedClient) {
+          return res.json({
+            success: true,
+            updatedClient,
+          });
+        } else {
+          return res.json({
+            success: false,
+            msg: "Client update failed.",
+          });
+        }
+      }
+    }
   } catch (err) {
-    return res.json({ msg: "test" || config.DEFAULT_RES_ERROR });
+    console.log("Client update error", err);
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-
 module.exports.clientController = {
   CREATE,
   GETCLIENTSBYUSERID,
+  UPDATE_CLIENT
 };
