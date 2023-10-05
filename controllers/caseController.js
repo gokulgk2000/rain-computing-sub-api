@@ -65,10 +65,11 @@ const CREATE = async (req, res) => {
 };
 
 
-const GETCASESBYCLIENTID = async (req, res) => {      
+const GETCASESBYCLIENTID = async (req, res) => {
   try {
     const { clientId,userId } = req.body;
   const cases = await Case.find({clientId,
+    aflag:true,
     caseMembers: {
       $elemMatch: {
         id: userId,
@@ -179,25 +180,104 @@ const GETBYUSERID = async (req, res) => {
 //     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
 //   }
 // };
+
+//raincomputing old 
+// const UPDATE_CASE = async (req, res) => {
+//   try {
+//     const {
+//       id,
+//       caseId,
+//       caseName,
+//       clientName,
+//       // serialNumber,
+//       members,
+//       admin,
+//       deleteIt,
+//       threadIdCondition,
+//     } = req.body;
+
+//     if (deleteIt) {
+//       const deletedCase = await Case.findByIdAndUpdate(id, {
+//         aflag: false,
+//       });
+
+//       if (deletedCase) {
+//         return res.json({
+//           success: true,
+//           caseId: deletedCase.caseId,
+//         });
+//       }
+//     } else {
+//       const structuredMembers = members.map((m) => ({ id: m, addedBy: admin }));
+//       const updateQuery = {
+//         caseName,
+//         caseId,
+//         clientName,
+//         // serialNumber,
+//         caseMembers: structuredMembers,
+//         threadIdCondition,
+//       };
+
+//       const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, {
+//         new: true,
+//       })
+//       .populate([
+//         {
+//           path: "caseMembers.id",
+//           select: "firstname lastname profilePic email",
+//         },
+//         { path: "caseMembers.addedBy", select: "firstname lastname" },
+//       ]);
+
+//       if (updatedCase) {
+//         if (threadIdCondition) {
+//           // If threadIdCondition is provided, update the Group as well
+//           const updateGroup = {
+//             threadIdCondition,
+//           };
+//           const casebyId = mongoose.Types.ObjectId(id);
+
+//           const updatedGroup = await Group.findOneAndUpdate(
+//             { caseId: casebyId },
+//             updateGroup,
+//             { new: true }
+//           );
+//         }
+//         return res.json({
+//           success: true,
+//           updatedCase,
+//         });
+//       } else {
+//         return res.json({
+//           success: false,
+//           msg: "Case not found or update failed.",
+//         });
+//       }
+//     }
+//   } catch (err) {
+//     console.log("Case update error", err);
+//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+//   }
+// };
+
+//rain sub code
 const UPDATE_CASE = async (req, res) => {
   try {
     const {
       id,
       caseId,
       caseName,
-      clientName,
+      // clientName,
       // serialNumber,
       members,
       admin,
       deleteIt,
       threadIdCondition,
     } = req.body;
-
     if (deleteIt) {
       const deletedCase = await Case.findByIdAndUpdate(id, {
         aflag: false,
       });
-
       if (deletedCase) {
         return res.json({
           success: true,
@@ -209,12 +289,11 @@ const UPDATE_CASE = async (req, res) => {
       const updateQuery = {
         caseName,
         caseId,
-        clientName,
+        // clientName,
         // serialNumber,
         caseMembers: structuredMembers,
         threadIdCondition,
       };
-
       const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, {
         new: true,
       })
@@ -225,7 +304,6 @@ const UPDATE_CASE = async (req, res) => {
         },
         { path: "caseMembers.addedBy", select: "firstname lastname" },
       ]);
-
       if (updatedCase) {
         if (threadIdCondition) {
           // If threadIdCondition is provided, update the Group as well
@@ -233,7 +311,6 @@ const UPDATE_CASE = async (req, res) => {
             threadIdCondition,
           };
           const casebyId = mongoose.Types.ObjectId(id);
-
           const updatedGroup = await Group.findOneAndUpdate(
             { caseId: casebyId },
             updateGroup,
@@ -256,7 +333,6 @@ const UPDATE_CASE = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-
 const EVENT_CREATE = async (req, res) => {
   const { caseId, events } = req.body;
   try {
