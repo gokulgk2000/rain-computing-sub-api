@@ -125,6 +125,12 @@ async function searchMail(req, res) {
               });
             };
 
+
+              if (part.mimeType === "text/html" && validMessageData === "") {
+                validMessageData =
+                  `<strong>Subject: ${subject}</strong>` +
+                  Buffer.from(part?.body?.data, "base64").toString();
+
             if (group) {
               while (parts.length) {
                 let part = parts.shift();
@@ -146,6 +152,7 @@ async function searchMail(req, res) {
                     contentType: part?.mimeType,
                   });
                 }
+
               }
               if (group?.threadIdCondition === "EveryOne") {
                 const sender = group?.groupMembers?.find(
