@@ -11,6 +11,7 @@ router.post("/appointmentrequest", async (req, res) => {
     const { User, attorney, caseData, isAttachments,
       attachments,appointmentstatus } = req.body;
     const user = await UserModel.findOne({ _id: User, aflag: true });
+    console.log("user",user)
     if (user) {
       const appointmentReqQuery = {
         User: user,

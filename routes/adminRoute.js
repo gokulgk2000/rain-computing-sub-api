@@ -16,115 +16,121 @@ const router = express.Router();
 router.get("/", (req, res) => res.send(" Admin Route"));
 
 router.post("/adminRegister", async (req, res) => {
-  const { firstname, lastname,email, password } = req.body;
+  const { firstname, lastname, email, password } = req.body;
   // console.log(req.body, "req.body");
   if (!password) {
     return res.json({
       msg: "Password Empty",
     });
   }
-  userModel.findOne({ firstname: firstname, admin: true }, async (err, isAdmin) => {
-    if (err) {
-      return res.json({
-        msg: "Admin Registeration failed",
-        error: err,
-      });
-    } else if (isAdmin) {
-      if (!isAdmin.aflag) {
+  userModel.findOne(
+    { firstname: firstname, admin: true },
+    async (err, isAdmin) => {
+      if (err) {
         return res.json({
-          msg: "This account has been deactivated",
+          msg: "Admin Registeration failed",
+          error: err,
         });
-      } else {
-        console.log("Alre");
-
-        return res.json({
-          msg: "Admin Already Exist",
-        });
-      }
-    } else {
-      console.log("AdminRegister");
-      const hashPassword = await hashGenerator(password);
-      const queryData = {
-        firstname: firstname,
-        lastname: lastname,
-        // adminName: adminName,
-        email: email,
-        password: hashPassword,
-        aflag: true,
-        admin:true,
-      };
-      userModel.create(queryData, async (err, admin) => {
-        if (err) {
+      } else if (isAdmin) {
+        if (!isAdmin.aflag) {
           return res.json({
-            msg: "Admin Registeration failed",
-            error: err,
+            msg: "This account has been deactivated",
           });
         } else {
+          console.log("Alre");
+
           return res.json({
-            success: true,
-            msg: "Admin Registration Sucessfull ",
-            adminID: admin._id,
+            msg: "Admin Already Exist",
           });
         }
-      });
+      } else {
+        console.log("AdminRegister");
+        const hashPassword = await hashGenerator(password);
+        const queryData = {
+          firstname: firstname,
+          lastname: lastname,
+          // adminName: adminName,
+          email: email,
+          password: hashPassword,
+          aflag: true,
+          admin: true,
+        };
+        userModel.create(queryData, async (err, admin) => {
+          if (err) {
+            return res.json({
+              msg: "Admin Registeration failed",
+              error: err,
+            });
+          } else {
+            return res.json({
+              success: true,
+              msg: "Admin Registration Sucessfull ",
+              adminID: admin._id,
+            });
+          }
+        });
+      }
     }
-  });
+  );
 });
 
 router.post("/adminLogin", async (req, res) => {
   const { firstname, password } = req.body;
 
-  userModel.findOne({ firstname: firstname, admin: true }, async (err, isAdmin) => {
-    if (err) {
-      return res.json({
-        msg: "Login failed",
-        error: err,
-      });
-    } else if (!isAdmin) {
-      return res.json({
-        msg: "This  username isn't registered yet",
-      });
-    } else if (!isAdmin.aflag) {
-      return res.json({
-        msg: "This account has been deactivated",
-      });
-    } else {
-      const result = await hashValidator(password, isAdmin.password);
-      if (result) {
-        console.log(result, "result");
-        const jwtToken = await JWTtokenGenerator({
-          id: isAdmin._id,
-          expire: "30d",
-        });
-        const query = {
-          adminId: isAdmin._id,
-          firstname: isAdmin.firstname,
-          lastname: isAdmin.lastname,
-          aflag: true,
-          admin: true,
-          token: "JWT " + jwtToken,
-        };
-        res.cookie("jwt", jwtToken, {
-          httpOnly: true,
-          maxAge: 30 * 24 * 60 * 60 * 1000,
-        });
-        console.log("Setting cookie in res");
+  userModel.findOne(
+    { firstname: firstname, admin: true },
+    async (err, isAdmin) => {
+      if (err) {
         return res.json({
-          success: true,
-          adminID: isAdmin._id,
-          firstname: isAdmin.firstname,
-          lastname: isAdmin.lastname,
-          // username: isAdmin.username,
-          token: "JWT " + jwtToken,
-          admin: true,
+          msg: "Login failed",
+          error: err,
+        });
+      } else if (!isAdmin) {
+        return res.json({
+          msg: "This  username isn't registered yet",
+        });
+      } else if (!isAdmin.aflag) {
+        return res.json({
+          msg: "This account has been deactivated",
         });
       } else {
-        return res.json({
-          msg: "Password Doesn't match",
-        });
+        const result = await hashValidator(password, isAdmin.password);
+        if (result) {
+          console.log(result, "result");
+          const jwtToken = await JWTtokenGenerator({
+            id: isAdmin._id,
+            expire: "30d",
+          });
+          const query = {
+            adminId: isAdmin._id,
+            firstname: isAdmin.firstname,
+            lastname: isAdmin.lastname,
+            aflag: true,
+            admin: true,
+            token: "JWT " + jwtToken,
+          };
+          res.cookie("jwt", jwtToken, {
+            httpOnly: true,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+          });
+          console.log("Setting cookie in res");
+          return res.json({
+            success: true,
+            adminID: isAdmin._id,
+            firstname: isAdmin.firstname,
+            lastname: isAdmin.lastname,
+            // username: isAdmin.username,
+            token: "JWT " + jwtToken,
+            admin: true,
+          });
+        } else {
+          return res.json({
+            msg: "Password Doesn't match",
+          });
+        }
       }
     }
-  });
+  );
 });
 
 router.get("/signOut", async (req, res) => {

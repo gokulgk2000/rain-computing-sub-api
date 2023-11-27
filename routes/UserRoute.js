@@ -10,6 +10,7 @@ const router = express.Router();
 const attorneyModel = require("../models/attorneymodels");
 const { sendMail } = require("../services/mail.services");
 const config = require("../config");
+const {MongoClient} = require("mongodb")
 
 router.get("/", (req, res) => res.send("User Route"));
 
@@ -85,75 +86,61 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
-  userModel.findOne({ email: email }, async (err, isUser) => {
-    if (err) {
-      return res.json({
-        msg: "Login failed",
-        error: err,
+  const dbURL =
+    "mongodb://common:go8JfN0GBH9RCe05HMA2NPywPTs5cseCYDkXIrXcCL4sIdjX2GIivTkA6qcS4bZb1tIAOra61qojACDbmZQXGQ==@common.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@common@";
+  const userdb = new MongoClient(dbURL);
+  await userdb.connect();
+  const targetCosmosDb = userdb.db();
+  const usercollection = targetCosmosDb.collection("usermodels");
+  // Use findOne directly on usercollection
+  const isUser = await usercollection.findOne({ email: email });
+  if (!isUser) {
+    return res.json({
+      msg: "This email isn't registered yet",
+    });
+  } else if (!isUser.aflag) {
+    return res.json({
+      msg: "This account has been deactivated",
+    });
+  } else {
+    const result = await hashValidator(password, isUser.password);
+    if (result) {
+      const jwtToken = await JWTtokenGenerator({
+        id: isUser._id,
+        expire: "30d",
       });
-    } else if (!isUser) {
-      return res.json({
-        msg: "This email isn't registered yet",
+      const query = {
+        userId: isUser._id,
+        firstname: isUser.firstname,
+        lastname: isUser.lastname,
+        aflag: true,
+        token: "JWT " + jwtToken,
+      };
+      res.cookie("jwt", jwtToken, {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
-    } else if (!isUser.aflag) {
+      console.log("Setting cookie in res");
       return res.json({
-        msg: "This account has been deactivated",
+        success: true,
+        userID: isUser._id,
+        firstname: isUser.firstname,
+        lastname: isUser.lastname,
+        email: isUser.email,
+        token: "JWT " + jwtToken,
+        attorneyStatus: isUser.attorneyStatus,
+        appointmentStatus: isUser.appointmentStatus,
+        profilePic: isUser.profilePic,
+        notificationSound: isUser.notificationSound,
+        isNotifySound: true,
+        admin: true,
+      });
+    } else {
+      return res.json({
+        msg: "Password Doesn't match",
       });
     }
-    // else if(!isUser?.verified){      //For Email Verification
-    //   return res.json({
-    //     msg: "This account hasn't been verified yet",
-    //   });
-    // }
-    else {
-      const result = await hashValidator(password, isUser.password);
-      if (result) {
-        const jwtToken = await JWTtokenGenerator({
-          id: isUser._id,
-          expire: "30d",
-        });
-        const query = {
-          userId: isUser._id,
-          firstname: isUser.firstname,
-          lastname: isUser.lastname,
-          aflag: true,
-          token: "JWT " + jwtToken,
-        };
-        res.cookie("jwt", jwtToken, {
-          httpOnly: true,
-          maxAge: 30 * 24 * 60 * 60 * 1000,
-        });
-        console.log("Setting cookie in res");
-        // ActiveSessionModel.create(query, (err, session) => {
-        //   if (err) {
-        //     return res.json({
-        //       msg: "Error Occured!!",
-        //     });
-        //   } else {
-        return res.json({
-          success: true,
-          userID: isUser._id,
-          firstname: isUser.firstname,
-          lastname: isUser.lastname,
-          email: isUser.email,
-          token: "JWT " + jwtToken,
-          attorneyStatus: isUser.attorneyStatus,
-          appointmentStatus: isUser.appointmentStatus,
-          profilePic: isUser.profilePic,
-          notificationSound: isUser.notificationSound,
-          isNotifySound: true,
-          admin: true,
-        });
-        //   }
-        // });
-      } else {
-        return res.json({
-          msg: "Password Doesn't match",
-        });
-      }
-    }
-  });
+  }
 });
 
 router.post("/allAttorney", async (req, res) => {

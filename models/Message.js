@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const messageSchema = mongoose.Schema(
   {
+    clientName: {
+      type: String,
+    },
     caseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Case",
@@ -94,7 +97,7 @@ const messageSchema = mongoose.Schema(
     maincaseId: {
       type: String
     },
-    ThreadId: {
+    threadId: {
        type: String
     },
     cleardBy: [

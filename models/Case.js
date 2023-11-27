@@ -12,6 +12,11 @@ const caseSchema = mongoose.Schema(
     },
     clientName: {
       type: String,
+      required: true,
+    },
+    clientId:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
     },
     // serialNumber: {
     //   type: String,

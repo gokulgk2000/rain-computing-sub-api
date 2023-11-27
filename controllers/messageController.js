@@ -8,6 +8,7 @@ const { sendMail } = require("../services/mail.services");
 const SENDMESSAGE = async (req, res) => {
   try {
     const {
+      clientName,
       caseId,
       groupId,
       sender,
@@ -20,6 +21,7 @@ const SENDMESSAGE = async (req, res) => {
       threadId
     } = req.body;
     const messageQuery = {
+      clientName,
       groupId,
       sender,
       receivers,

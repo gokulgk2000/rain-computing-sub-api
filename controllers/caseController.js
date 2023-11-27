@@ -10,9 +10,11 @@ const CREATE = async (req, res) => {
     const {
       caseId,
       caseName,
+      clientName,
+      clientId,
       members,
       admin,
-      serialNumber,
+      // serialNumber,
       docDate,
       docEvent,
       maincaseId,
@@ -26,10 +28,12 @@ const CREATE = async (req, res) => {
     const caseQuery = {
       caseId,
       caseName,
+      clientName,
+      clientId,
       caseMembers: struturedMembers,
       notifyMembers: members,
       admins: [admin],
-      serialNumber,
+      // serialNumber,
       maincaseId: maincaseId,
       isSubcase: isSubcase,
       threadId: threadId,
@@ -57,6 +61,30 @@ const CREATE = async (req, res) => {
     return res.json({
       msg: err || config.DEFAULT_RES_ERROR,
     });
+  }
+};
+
+
+const GETCASESBYCLIENTID = async (req, res) => {
+  try {
+    const { clientId,userId } = req.body;
+  const cases = await Case.find({clientId,
+    aflag:true,
+    caseMembers: {
+      $elemMatch: {
+        id: userId,
+        isActive: true,
+      },
+    },
+    }).populate([
+    { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+    { path: "caseMembers.addedBy", select: "firstname lastname" },
+  ]);
+    if (cases?.length > 0){
+      return res.json({ success: true, cases: cases});}
+    else return res.json({ msg: "No Cases Found" });
+  } catch (err) {
+    return res.json({ msg: "error" || config.DEFAULT_RES_ERROR });
   }
 };
 
@@ -152,15 +180,109 @@ const GETBYUSERID = async (req, res) => {
 //     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
 //   }
 // };
+
+//raincomputing old 
+// const UPDATE_CASE = async (req, res) => {
+//   try {
+//     const {
+//       id,
+//       caseId,
+//       caseName,
+//       clientName,
+//       // serialNumber,
+//       members,
+//       admin,
+//       deleteIt,
+//       threadIdCondition,
+//     } = req.body;
+
+//     if (deleteIt) {
+//       const deletedCase = await Case.findByIdAndUpdate(id, {
+//         aflag: false,
+//       });
+
+//       if (deletedCase) {
+//         return res.json({
+//           success: true,
+//           caseId: deletedCase.caseId,
+//         });
+//       }
+//     } else {
+//       const structuredMembers = members.map((m) => ({ id: m, addedBy: admin }));
+//       const updateQuery = {
+//         caseName,
+//         caseId,
+//         clientName,
+//         // serialNumber,
+//         caseMembers: structuredMembers,
+//         threadIdCondition,
+//       };
+
+//       const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, {
+//         new: true,
+//       })
+//       .populate([
+//         {
+//           path: "caseMembers.id",
+//           select: "firstname lastname profilePic email",
+//         },
+//         { path: "caseMembers.addedBy", select: "firstname lastname" },
+//       ]);
+
+//       if (updatedCase) {
+//         if (threadIdCondition) {
+//           // If threadIdCondition is provided, update the Group as well
+//           const updateGroup = {
+//             threadIdCondition,
+//           };
+//           const casebyId = mongoose.Types.ObjectId(id);
+
+//           const updatedGroup = await Group.findOneAndUpdate(
+//             { caseId: casebyId },
+//             updateGroup,
+//             { new: true }
+//           );
+//         }
+//         return res.json({
+//           success: true,
+//           updatedCase,
+//         });
+//       } else {
+//         return res.json({
+//           success: false,
+//           msg: "Case not found or update failed.",
+//         });
+//       }
+//     }
+//   } catch (err) {
+//     console.log("Case update error", err);
+//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+//   }
+// };
+
+//rain sub code
 const UPDATE_CASE = async (req, res) => {
   try {
+
     const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt,threadIdCondition } = req.body;
+
+
+    const {
+      id,
+      caseId,
+      caseName,
+      // clientName,
+      // serialNumber,
+      members,
+      admin,
+      deleteIt,
+      threadIdCondition,
+    } = req.body;
 
     if (deleteIt) {
       const deletedCase = await Case.findByIdAndUpdate(id, {
         aflag: false,
       });
-
       if (deletedCase) {
         return res.json({
           success: true,
@@ -172,19 +294,26 @@ const UPDATE_CASE = async (req, res) => {
       const updateQuery = {
         caseName,
         caseId,
+
         docDate,
         docEvent,
         serialNumber,
+
+        // clientName,
+        // serialNumber,
+
         caseMembers: structuredMembers,
         notifyMembers: members,
         threadIdCondition:threadIdCondition,
       };
+
 
       const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, { new: true })
         .populate([
           { path: "caseMembers.id", select: "firstname lastname profilePic email" },
           { path: "caseMembers.addedBy", select: "firstname lastname" },
         ]);
+
 
       if (updatedCase) {
         if (threadIdCondition) {
@@ -193,7 +322,6 @@ const UPDATE_CASE = async (req, res) => {
             threadIdCondition,
           };
           const casebyId = mongoose.Types.ObjectId(id);
-
           const updatedGroup = await Group.findOneAndUpdate(
             { caseId: casebyId },
             updateGroup,
@@ -225,7 +353,6 @@ const UPDATE_CASE = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-
 
 const EVENT_CREATE = async (req, res) => {
   const { caseId, events } = req.body;
@@ -454,7 +581,7 @@ const CREATE_SUBCASE = async (req, res) => {
     for (const subCaseItem of subCase) {
       const {
         caseName,
-        serialNumber,
+        // serialNumber,
         caseMembers,
         notifyMembers,
         admins,
@@ -465,7 +592,7 @@ const CREATE_SUBCASE = async (req, res) => {
       // Create a new subcase object
       const newSubCase = {
         caseName,
-        serialNumber,
+        // serialNumber,
         caseMembers,
         notifyMembers,
         admins,
@@ -512,13 +639,16 @@ const CREATE_SUBCASE = async (req, res) => {
   }
 };
 const CASEIDBY_SUBCASES = async (req, res) => {
-  const { caseId } = req.body;
+  const { clientName,userID } = req.body;
   try {
-    const caseIdSubCases = await Case.find({
-      maincaseId: caseId,
-      isSubcase: true,
+    const caseClientNames = await Case.find({
+      // maincaseId: caseId,
+      clientName:clientName,
+      userID:userID,
+      // isSubcase: true,
       caseMembers: {
         $elemMatch: {
+          id: userID,
           isActive: true,
         },
       },
@@ -533,10 +663,10 @@ const CASEIDBY_SUBCASES = async (req, res) => {
       ])
       .exec();
 
-    if (caseIdSubCases && caseIdSubCases.length > 0) {
+    if (caseClientNames && caseClientNames.length > 0) {
       return res.json({
         success: true,
-        caseIdSubCases,
+        caseClientNames,
       });
     } else {
       return res.json({ msg: "No subcases found" });
@@ -589,4 +719,5 @@ module.exports.caseController = {
   CREATE_SUBCASE,
   CASEIDBY_SUBCASES,
   GET_ALL_SUBCASES,
+  GETCASESBYCLIENTID
 };
