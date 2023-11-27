@@ -67,21 +67,23 @@ const CREATE = async (req, res) => {
 
 const GETCASESBYCLIENTID = async (req, res) => {
   try {
-    const { clientId,userId } = req.body;
-  const cases = await Case.find({clientId,
-    aflag:true,
-    caseMembers: {
-      $elemMatch: {
-        id: userId,
-        isActive: true,
+    const { clientId, userId } = req.body;
+    const cases = await Case.find({
+      clientId,
+      aflag: true,
+      caseMembers: {
+        $elemMatch: {
+          id: userId,
+          isActive: true,
+        },
       },
-    },
     }).populate([
-    { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-    { path: "caseMembers.addedBy", select: "firstname lastname" },
-  ]);
-    if (cases?.length > 0){
-      return res.json({ success: true, cases: cases});}
+      { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+      { path: "caseMembers.addedBy", select: "firstname lastname" },
+    ]);
+    if (cases?.length > 0) {
+      return res.json({ success: true, cases: cases });
+    }
     else return res.json({ msg: "No Cases Found" });
   } catch (err) {
     return res.json({ msg: "error" || config.DEFAULT_RES_ERROR });
@@ -264,20 +266,7 @@ const GETBYUSERID = async (req, res) => {
 const UPDATE_CASE = async (req, res) => {
   try {
 
-    const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt,threadIdCondition } = req.body;
-
-
-    const {
-      id,
-      caseId,
-      caseName,
-      // clientName,
-      // serialNumber,
-      members,
-      admin,
-      deleteIt,
-      threadIdCondition,
-    } = req.body;
+    const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt, threadIdCondition } = req.body;
 
     if (deleteIt) {
       const deletedCase = await Case.findByIdAndUpdate(id, {
@@ -304,7 +293,7 @@ const UPDATE_CASE = async (req, res) => {
 
         caseMembers: structuredMembers,
         notifyMembers: members,
-        threadIdCondition:threadIdCondition,
+        threadIdCondition: threadIdCondition,
       };
 
 
@@ -639,12 +628,12 @@ const CREATE_SUBCASE = async (req, res) => {
   }
 };
 const CASEIDBY_SUBCASES = async (req, res) => {
-  const { clientName,userID } = req.body;
+  const { clientName, userID } = req.body;
   try {
     const caseClientNames = await Case.find({
       // maincaseId: caseId,
-      clientName:clientName,
-      userID:userID,
+      clientName: clientName,
+      userID: userID,
       // isSubcase: true,
       caseMembers: {
         $elemMatch: {
