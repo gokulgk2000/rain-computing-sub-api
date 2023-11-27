@@ -77,9 +77,10 @@ const REPLYMESSAGE = async (req, res) => {
 
 const GETMESSAGES = async (req, res) => {
   try {
-    const { groupId, userId } = req.body;
+    const { groupId, userId,caseId } = req.body;
+    if( groupId) {
     const groupMessages = await Message.find({
-      groupId,
+      groupId,    
       aflag: true,
       cleardBy: { $ne: [userId] },
     });
@@ -88,6 +89,18 @@ const GETMESSAGES = async (req, res) => {
         success: true,
         groupMessages,
       });
+    }else{
+      const groupMessages = await Message.find({
+        caseId,
+        aflag: true,
+        cleardBy: { $ne: [userId] },
+      });
+      if (groupMessages)
+        return res.json({
+          success: true,
+          groupMessages,
+        });
+    }
   } catch (err) {
     console.log(err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
@@ -121,27 +134,27 @@ const GETMESSAGEBYID = async (req, res) => {
 const DELETEMSG = async (req, res) => {
   try {
     const { id, deleteIt, createdAt } = req.body;
-    // today = new Date();
-    // time1 = today.valueOf();
-    // date1 = new Date(createdAt);
+    today = new Date();
+    time1 = today.valueOf();
+    date1 = new Date(createdAt);
     //time2 = new Date().getMinutes();
-    // time2 = date1.valueOf();
-    // time3 = time1 - time2;
+    time2 = date1.valueOf();
+    time3 = time1 - time2;
     if (deleteIt) {
-      // if (time3 < 60000) {
-        const deletedmsg = await Message.findByIdAndUpdate({_id: id}, {
-          aflag: false,
-        },{new: true});
-        if (deletedmsg)
-          return res.json({ success: true, DeletedMessage:deletedmsg
-            //  time1, time2, time3 
-            });
-      // } 
-      // else {
-      //   return res.json({
-      //     msg: "Unable to Delete later",
-      //   });
-      // }
+      if (time3 < 600000) {
+      const deletedmsg = await Message.findByIdAndUpdate({ _id: id }, {
+        aflag: false,
+      },{new: true});
+      if (deletedmsg)
+        return res.json({ success: true, DeletedMessage: deletedmsg
+          //  time1, time2, time3 
+        });
+      } 
+      else {
+        return res.json({
+          msg: "Unable to Delete later",
+        });
+      }
     } else {
       return res.json({
         msg: "Unable to Delete",
@@ -153,17 +166,29 @@ const DELETEMSG = async (req, res) => {
 };
 const UPDATE_MESSAGE = async (req, res) => {
   try {
-    const { _id, messageData, sender } = req.body;
+    const { _id, messageData, sender,createdAt } = req.body;
+
+    today = new Date();
+    time1 = today.valueOf();
+    date1 = new Date(createdAt);
+    time2 = date1.valueOf();
+    time3 = time1 - time2;
 
     const updateQuery = {
       messageData,
       sender,
       isEdit: true, // If you want to update the sender field
     };
+    if (time3 < 600000) {
     const updatedMessage = await Message.findByIdAndUpdate(_id, updateQuery, {
       new: true,
     });
     return res.json({ success: true, updatedMessage });
+  }else{
+    return res.json({
+      msg: "Unable to Edit later",
+    });
+  }
   } catch (err) {
     console.log("Case update error", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
@@ -172,54 +197,106 @@ const UPDATE_MESSAGE = async (req, res) => {
 
 const GETFILES = async (req, res) => {
   try {
-    const { caseId, searchText = "" } = req.body;
-    const filesQuery = {
-      caseId,
-      aflag: true,
-      isAttachment: true,
-      "attachments.aflag": true,
-      "attachments.name": { $regex: "^" + searchText, $options: "i" },
-    };
-    const files = await Message.find(filesQuery).populate({
-      path: "sender",
-      select: "firstname lastname _id",
-    });
-    if (files?.length > 0) {
-      let struturedFiles = [];
-      files.map((f) => {
-        const senderName = f?.sender?.firstname + " " + f?.sender?.lastname;
-        const senderId = f?.sender?._id;
-        const time = f?.createdAt;
-        const msgId = f?._id;
-        f?.attachments?.map((a) => {
-          const typeIndex = a?.name.indexOf(".");
-          const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
-          const size = a?.size;
-          const id = a?.id;
-          const name = a?.name;
-          const note = a?.note;
-          struturedFiles.push({
-            msgId,
-            id,
-            senderName,
-            senderId,
-            type,
-            name,
-            size,
-            time,
-            note,
+    const { groupId, caseId, searchText = "" } = req.body;
+
+    if (caseId) {
+      const filesQuery = {
+        caseId,
+        aflag: true,
+        isAttachment: true,
+        "attachments.aflag": true,
+        "attachments.name": { $regex: "^" + searchText, $options: "i" },
+      };
+      const files = await Message.find(filesQuery).populate({
+        path: "sender",
+        select: "firstname lastname _id",
+      });
+      if (files?.length > 0) {
+        let struturedFiles = [];
+        files.map((f) => {
+          const senderName = f?.sender?.firstname + " " + f?.sender?.lastname;
+          const senderId = f?.sender?._id;
+          const time = f?.createdAt;
+          const msgId = f?._id;
+          f?.attachments?.map((a) => {
+            const typeIndex = a?.name.indexOf(".");
+            const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
+            const size = a?.size;
+            const id = a?.id;
+            const name = a?.name;
+            const note = a?.note;
+            struturedFiles.push({
+              msgId,
+              id,
+              senderName,
+              senderId,
+              type,
+              name,
+              size,
+              time,
+              note,
+            });
           });
         });
-      });
-      return res.json({
-        success: true,
-        files: struturedFiles,
-      });
+        return res.json({
+          success: true,
+          files: struturedFiles,
+        });
+      } else {
+        return res.json({
+          msg: "No Files Found",
+        });
+      }
     } else {
-      return res.json({
-        msg: "No Files Found",
+      const filesQuery = {
+        groupId,
+        aflag: true,
+        isAttachment: true,
+        "attachments.aflag": true,
+        "attachments.name": { $regex: "^" + searchText, $options: "i" },
+      };
+      const files = await Message.find(filesQuery).populate({
+        path: "sender",
+        select: "firstname lastname _id",
       });
+      if (files?.length > 0) {
+        let struturedFiles = [];
+        files.map((f) => {
+          const senderName = f?.sender?.firstname + " " + f?.sender?.lastname;
+          const senderId = f?.sender?._id;
+          const time = f?.createdAt;
+          const msgId = f?._id;
+          f?.attachments?.map((a) => {
+            const typeIndex = a?.name.indexOf(".");
+            const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
+            const size = a?.size;
+            const id = a?.id;
+            const name = a?.name;
+            const note = a?.note;
+            struturedFiles.push({
+              msgId,
+              id,
+              senderName,
+              senderId,
+              type,
+              name,
+              size,
+              time,
+              note,
+            });
+          });
+        });
+        return res.json({
+          success: true,
+          files: struturedFiles,
+        });
+      } else {
+        return res.json({
+          msg: "No Files Found",
+        });
+      }
     }
+
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
