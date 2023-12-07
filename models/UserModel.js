@@ -57,6 +57,19 @@ const userSchema = mongoose.Schema({
   admin:{
     type: Boolean,
     default: false,
-  }
+  },
+  domains: [
+    {
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: mongoose.Types.ObjectId,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      
+    },
+  ],
 });
 module.exports = mongoose.model("UserModel", userSchema);

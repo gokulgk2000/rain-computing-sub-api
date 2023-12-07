@@ -33,6 +33,18 @@ const RegAttorneySchema = mongoose.Schema({
   postalCode: {
     type: Number,
   },
+  fee:{
+    type:String
+  },
+  expertise:{
+    type:String
+  },
+  jurisdiction:{
+    type:String
+  },
+  subdomain:{
+    type:String
+  },
   aflag: {
     type: Boolean,
   },

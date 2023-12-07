@@ -23,6 +23,10 @@ const messageSchema = mongoose.Schema(
       },
     ],
 
+    rID:{
+      type: mongoose.Schema.Types.ObjectId,
+    },
+    
     replies: [
       {
         sender: {
