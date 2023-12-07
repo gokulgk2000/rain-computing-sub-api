@@ -346,72 +346,73 @@ async function searchMail(req, res) {
                 });
               }
             }
-    //
-      const sender = group?.groupMembers?.find(
-        (g) => g?.id?.email === senderEmail
-      )?.id?._id;
-      const receivers = group?.groupMembers
-        ?.filter((gm) => gm?.id?.email !== senderEmail)
-        ?.map((g) => g?.id?._id);
-      const messageQuery = {
-        groupId,
-        sender,
-        receivers,
-        messageData: validMessageData,
-      };
-      if (group.caseId) {
-        messageQuery.caseId = group.caseId;
-      }
-      if (validAttachments?.length > 0) {
-        messageQuery.isAttachment = true;
-        messageQuery.attachments = validAttachments;
-      }
-      const isEveryoneCondition = group?.threadIdCondition === "EveryOne";
-      const isGroupMembersCondition = group?.threadIdCondition === "GroupMembers";
-      if (isEveryoneCondition || (sender && isGroupMembersCondition)) {
-        const createdMessage = await Message.create(messageQuery);
-        if (createdMessage) {
-          try {
-            const { token: accessToken } = await oAuth2Client.getAccessToken();
-            await axios({
-              method: "post",
-              url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${mailMes?.id}/modify`,
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-              data: {
-                addLabelIds: ["Label_2117604939096943395"],
-                removeLabelIds: ["UNREAD"],
-              },
-            });
-            sendMessages.push(createdMessage);
-          } catch (error) {
+            //
+            const sender = group?.groupMembers?.find(
+              (g) => g?.id?.email === senderEmail
+            )?.id?._id;
+            const receivers = group?.groupMembers
+              ?.filter((gm) => gm?.id?.email !== senderEmail)
+              ?.map((g) => g?.id?._id);
+            const messageQuery = {
+              groupId,
+              sender,
+              receivers,
+              messageData: validMessageData,
+            };
+            if (group.caseId) {
+              messageQuery.caseId = group.caseId;
+            }
+            if (validAttachments?.length > 0) {
+              messageQuery.isAttachment = true;
+              messageQuery.attachments = validAttachments;
+            }
+            const isEveryoneCondition = group?.threadIdCondition === "EveryOne";
+            const isGroupMembersCondition = group?.threadIdCondition === "GroupMembers";
+            if (isEveryoneCondition || (sender && isGroupMembersCondition)) {
+              const createdMessage = await Message.create(messageQuery);
+              if (createdMessage) {
+                try {
+                  const { token: accessToken } = await oAuth2Client.getAccessToken();
+                  await axios({
+                    method: "post",
+                    url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${mailMes?.id}/modify`,
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                    },
+                    data: {
+                      addLabelIds: ["Label_2117604939096943395"],
+                      removeLabelIds: ["UNREAD"],
+                    },
+                  });
+                  sendMessages.push(createdMessage);
+                } catch (error) {
+                  console.log({
+                    msg: "Failed to modify mail",
+                    error: error.message,
+                  });
+                }
+              } else {
+                console.log({
+                  msg: "Failed to create message",
+                  groupId,
+                  data: response.data,
+                });
+              }
+            } else {
+              console.log({
+                msg: "No appropriate condition found",
+                groupId,
+              });
+            }
+          } else {
             console.log({
-              msg: "Failed to modify mail",
-              error: error.message,
+              msg: "No group found",
+              groupId,
             });
           }
-        } else {
-          console.log({
-            msg: "Failed to create message",
-            groupId,
-            data: response.data,
-          });
-        }
-      } else {
-        console.log({
-          msg: "No appropriate condition found",
-          groupId,
-        });
-      }
-    } else {
-      console.log({
-        msg: "No group found",
-        groupId,
-      });
-    }
         })
-      )}
+      )
+    }
   } catch (error) {
     console.log("error : " + error);
     // return res.json({ error });
